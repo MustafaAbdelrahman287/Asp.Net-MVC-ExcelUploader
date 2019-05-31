@@ -1,26 +1,19 @@
 ﻿@model ExcelUploader.Models.FileValidation
 @{
     ViewBag.Title = "Home Page";
+    string color = (Model.hasError) ? "red" : "green";
+    string message = Model.Message;
+
+
 }
 @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
     <span>Select File:</span>
     <input type="file" name="postedFile" accept="xsl,xslx" class="form-control" />
-    if (Model != null)
-    {
-        /**/
-        if (Model.hasError == true)
-        {
-            <span style="color:red"> @Model.Message</span>
-        }
-        else
-        {
-            <span style="color:green"> @Model.Message</span>
+    
+        <span style="color:@color"> @message</span>
 
 
-        }
-    }
-
-    <hr />
-    <input type="submit" value="Upload" class="btn btn-primary" />
+<hr />
+<input type="submit" value="Upload" class="btn btn-primary" />
 }
