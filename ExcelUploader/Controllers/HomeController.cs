@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Data.SqlClient;
 
 namespace ExcelUploader.Controllers
 {
@@ -73,15 +74,17 @@ namespace ExcelUploader.Controllers
             string connString = GetConnectionStringForExcelFiles(Path.GetExtension(postedFile.FileName) ,filePath);
 
             var fileSchema = GetExcelFileSchema(connString);
+            fileSchema.TableName = fileName;
 
             string sqlCreateStatment = GenerateSQLCreateStatement(fileName,fileSchema);
 
             CreateNewTable(sqlCreateStatment);
-
+            PopulateTableData(connString, fileSchema);
 
             return View(fileValidation);
         }
 
+        
         private string GetConnectionStringForExcelFiles(string extension,  string filePath)
         {
             string conString = string.Empty;
@@ -122,6 +125,7 @@ namespace ExcelUploader.Controllers
             OleDbDataAdapter SheetAdapter = new OleDbDataAdapter(selectCmd,conn);
             SheetAdapter.Fill(FileSchema);
 
+            conn.Close();
             ExcelFileSchema schema = new ExcelFileSchema();
             foreach (DataRow row in FileSchema.Rows)
             {
@@ -144,7 +148,7 @@ namespace ExcelUploader.Controllers
             for (int i = 0; i < columns.Count; i++)
             {
                 if (columns[i] != columns.Last()) // if it's not the last column name we still will generate comma at the end 
-                                                  // else will not generate the comma to avoid erros when running the script on DB.
+                                                  // else will not generate the comma to avoid errors when running the script on DB.
                 {
                     columnsCommandPart += columns[i] + " nvarchar(max) ,";
                 }
@@ -157,6 +161,39 @@ namespace ExcelUploader.Controllers
 
             return command;
         }
+
+        private void PopulateTableData(string connString, ExcelFileSchema Schema)
+        {
+
+            DataTable dt = new DataTable();
+            OleDbConnection excelConn = new OleDbConnection(connString);
+            excelConn.Open();
+            DataTable FileSchema = excelConn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null); // no restrictions
+
+
+            string sheetName = FileSchema.Rows[0]["TABLE_NAME"].ToString();
+            string selectCmd = "select * from [" + sheetName + "]";
+
+            OleDbDataAdapter SheetAdapter = new OleDbDataAdapter(selectCmd, excelConn);
+            SheetAdapter.Fill(dt);
+
+            excelConn.Close();
+            SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString);
+
+            using (SqlBulkCopy sqlBulkCopy = new SqlBulkCopy(con))
+            {
+                sqlBulkCopy.DestinationTableName = "dbo."+Schema.TableName;
+                var columns = Schema.ColumnsNames;
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    sqlBulkCopy.ColumnMappings.Add(columns[i], columns[i]);
+                }
+                con.Open();
+                sqlBulkCopy.WriteToServer(dt);
+                con.Close();
+            }
+        }
+
     }
 
 
