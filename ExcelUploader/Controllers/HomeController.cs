@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Data.OleDb;
 using System.IO;
 using System.Linq;
@@ -49,7 +50,7 @@ namespace ExcelUploader.Controllers
                 var checkextension = Path.GetExtension(postedFile.FileName).ToLower();
                 string path = Server.MapPath("~/Uploads/");
                 fileName = Path.GetFileNameWithoutExtension(path + postedFile.FileName);
-                filePath = path + fileName;
+                filePath = path + postedFile.FileName;
 
                 if (allowedExtensions.Contains(checkextension))
                 {
@@ -59,7 +60,6 @@ namespace ExcelUploader.Controllers
                     }
 
                     postedFile.SaveAs(path + postedFile.FileName);
-                    CreateNewTable(fileName);
                     fileValidation.hasError = false;
                     fileValidation.Message = "OK! Your File Is Uploaded Successfully!";
                 }
@@ -71,6 +71,13 @@ namespace ExcelUploader.Controllers
             }
 
             string connString = GetConnectionStringForExcelFiles(Path.GetExtension(postedFile.FileName) ,filePath);
+
+            var fileSchema = GetExcelFileSchema(connString);
+
+            string sqlCreateStatment = GenerateSQLCreateStatement(fileName,fileSchema);
+
+            CreateNewTable(sqlCreateStatment);
+
 
             return View(fileValidation);
         }
@@ -87,27 +94,68 @@ namespace ExcelUploader.Controllers
                     conString = ConfigurationManager.ConnectionStrings["Excel2007ConString"].ConnectionString;
                     break;
             }
+            conString = string.Format(conString, filePath);
+
             return conString;
         }
 
-        private void CreateNewTable(string tableName)
+        private void CreateNewTable(string sqlStatement)
         {
-            //using (ExcelUploaderContext ctx = new ExcelUploaderContext())
-            //{
-            //    int result = ctx.Database.ExecuteSqlCommand(string.Format(@"CREATE TABLE {0}", tableName));
-            //    OleDbDataAdapter ad = new OleDbDataAdapter();
-            //}
+            using (ExcelUploaderContext ctx = new ExcelUploaderContext())
+            {
+                int result = ctx.Database.ExecuteSqlCommand(sqlStatement);
+            }
         }
 
-        private string[] GetColumnNames(HttpPostedFileBase postedFile)
+
+        private ExcelFileSchema GetExcelFileSchema(string connectionString) //This function can be enhanced to access the schema of multiple sheets within
+                                                                            // a single excel file.
         {
-            var strArray = new string[0];
-            return strArray;
+            OleDbConnection conn = new OleDbConnection(connectionString);
+            conn.Open();
+            DataTable FileSchema = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Columns, null); // no restrictions
+
+
+            string sheetName = FileSchema.Rows[0]["TABLE_NAME"].ToString();
+            string selectCmd = "select * from ["+sheetName+"]";
+
+            OleDbDataAdapter SheetAdapter = new OleDbDataAdapter(selectCmd,conn);
+            SheetAdapter.Fill(FileSchema);
+
+            ExcelFileSchema schema = new ExcelFileSchema();
+            foreach (DataRow row in FileSchema.Rows)
+            {
+                string columnName = row["Column_Name"].ToString();
+                if (!string.IsNullOrEmpty(columnName))
+                {
+                    schema.ColumnsNames.Add(columnName);
+
+                }
+            }
+            schema.SheetName = sheetName;
+            return schema;
         }
 
-        private string GenerateSQLCreateStatment()
+        private string GenerateSQLCreateStatement(string fileName, ExcelFileSchema excelFileSchema)
         {
-            return "";
+            var columns = excelFileSchema.ColumnsNames;
+            string columnsCommandPart = "";
+
+            for (int i = 0; i < columns.Count; i++)
+            {
+                if (columns[i] != columns.Last()) // if it's not the last column name we still will generate comma at the end 
+                                                  // else will not generate the comma to avoid erros when running the script on DB.
+                {
+                    columnsCommandPart += columns[i] + " nvarchar(max) ,";
+                }
+                else
+                {
+                    columnsCommandPart += columns[i] + " nvarchar(max)";
+                }
+            }
+            string command = string.Format(@"CREATE TABLE {0} ( {1} )",fileName, columnsCommandPart);
+
+            return command;
         }
     }
 

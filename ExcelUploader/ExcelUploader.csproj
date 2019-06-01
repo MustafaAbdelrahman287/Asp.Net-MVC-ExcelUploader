@@ -131,6 +131,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\ExcelFileSchema.cs" />
     <Compile Include="Models\ExcelUploaderContext.cs" />
     <Compile Include="Models\FileValidation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -171,6 +172,7 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Uploads\Book2.xlsx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
