@@ -131,9 +131,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Models\ExcelFileSchema.cs" />
-    <Compile Include="Models\ExcelUploaderContext.cs" />
-    <Compile Include="Models\FileValidation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -200,6 +197,10 @@
     <ProjectReference Include="..\ExcelUploader.DataAccessLayer\ExcelUploader.DataAccessLayer.csproj">
       <Project>{69cafa1e-a25d-46ac-b52b-8fe21b3e7cd4}</Project>
       <Name>ExcelUploader.DataAccessLayer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ExcelUploader.Models\ExcelUploader.Models.csproj">
+      <Project>{513139cf-7586-48e1-962d-b622480ba4b2}</Project>
+      <Name>ExcelUploader.Models</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

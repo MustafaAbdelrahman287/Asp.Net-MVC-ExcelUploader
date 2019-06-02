@@ -33,6 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,12 +42,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExcelHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ExcelUploader.DataAccessLayer\ExcelUploader.DataAccessLayer.csproj">
       <Project>{69cafa1e-a25d-46ac-b52b-8fe21b3e7cd4}</Project>
       <Name>ExcelUploader.DataAccessLayer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ExcelUploader.Models\ExcelUploader.Models.csproj">
+      <Project>{513139cf-7586-48e1-962d-b622480ba4b2}</Project>
+      <Name>ExcelUploader.Models</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{69CAFA1E-A25D-46AC-B52B-8FE21B3E7CD4}</ProjectGuid>
+    <ProjectGuid>{513139CF-7586-48E1-962D-B622480BA4B2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ExcelUploader.DataAccessLayer</RootNamespace>
-    <AssemblyName>ExcelUploader.DataAccessLayer</AssemblyName>
+    <RootNamespace>ExcelUploader.Models</RootNamespace>
+    <AssemblyName>ExcelUploader.Models</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -39,7 +39,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -49,15 +48,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConnectionStringHelper.cs" />
-    <Compile Include="FileIOService.cs" />
+    <Compile Include="ExcelFileSchema.cs" />
+    <Compile Include="ExcelUploaderContext.cs" />
+    <Compile Include="FileValidation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ExcelUploader.Models\ExcelUploader.Models.csproj">
-      <Project>{513139cf-7586-48e1-962d-b622480ba4b2}</Project>
-      <Name>ExcelUploader.Models</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
