@@ -137,10 +137,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\ExcelUploader.Models.ExcelUploaderContext.mdf" />
-    <Content Include="App_Data\ExcelUploader.Models.ExcelUploaderContext_log.ldf">
-      <DependentUpon>ExcelUploader.Models.ExcelUploaderContext.mdf</DependentUpon>
-    </Content>
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
@@ -180,6 +176,7 @@
     <Content Include="Views\Home\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="App_Data\" />
     <Folder Include="Uploads\" />
   </ItemGroup>
   <ItemGroup>
@@ -194,6 +191,16 @@
     <None Include="packages.config" />
     <Content Include="Scripts\jquery-3.3.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.3.1.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ExcelUploader.BusinessLogicLayer\ExcelUploader.BusinessLogicLayer.csproj">
+      <Project>{bfc0033e-7c83-4947-bc56-96a19929f55f}</Project>
+      <Name>ExcelUploader.BusinessLogicLayer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ExcelUploader.DataAccessLayer\ExcelUploader.DataAccessLayer.csproj">
+      <Project>{69cafa1e-a25d-46ac-b52b-8fe21b3e7cd4}</Project>
+      <Name>ExcelUploader.DataAccessLayer</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

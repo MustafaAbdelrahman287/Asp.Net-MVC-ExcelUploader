@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelUploader", "ExcelUploader\ExcelUploader.csproj", "{B72C3E3A-BCBD-4820-87C0-CABF69D57427}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelUploader.DataAccessLayer", "ExcelUploader.DataAccessLayer\ExcelUploader.DataAccessLayer.csproj", "{69CAFA1E-A25D-46AC-B52B-8FE21B3E7CD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelUploader.BusinessLogicLayer", "ExcelUploader.BusinessLogicLayer\ExcelUploader.BusinessLogicLayer.csproj", "{BFC0033E-7C83-4947-BC56-96A19929F55F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{B72C3E3A-BCBD-4820-87C0-CABF69D57427}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B72C3E3A-BCBD-4820-87C0-CABF69D57427}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B72C3E3A-BCBD-4820-87C0-CABF69D57427}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69CAFA1E-A25D-46AC-B52B-8FE21B3E7CD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69CAFA1E-A25D-46AC-B52B-8FE21B3E7CD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69CAFA1E-A25D-46AC-B52B-8FE21B3E7CD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69CAFA1E-A25D-46AC-B52B-8FE21B3E7CD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFC0033E-7C83-4947-BC56-96A19929F55F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFC0033E-7C83-4947-BC56-96A19929F55F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFC0033E-7C83-4947-BC56-96A19929F55F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFC0033E-7C83-4947-BC56-96A19929F55F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

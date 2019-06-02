@@ -14,6 +14,7 @@ namespace ExcelUploader.Controllers
 {
     public class HomeController : Controller
     {
+        string dbPath;
         #region About and Contact Actions
 
         public ActionResult About()
@@ -34,6 +35,7 @@ namespace ExcelUploader.Controllers
         public ActionResult Index()
         {
             var model = new FileValidation();
+
             return View(model);
         }
 
@@ -48,6 +50,7 @@ namespace ExcelUploader.Controllers
 
             if (postedFile != null)
             {
+                
                 var checkextension = Path.GetExtension(postedFile.FileName).ToLower();
                 string path = Server.MapPath("~/Uploads/");
                 fileName = Path.GetFileNameWithoutExtension(path + postedFile.FileName);
@@ -178,8 +181,13 @@ namespace ExcelUploader.Controllers
             SheetAdapter.Fill(dt);
 
             excelConn.Close();
-            SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString);
+            dbPath = Server.MapPath("~/App_Data/ExcelUploader.Models.ExcelUploaderContext.mdf");
 
+            string sqlConSring = ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString;
+            sqlConSring = string.Format(sqlConSring, dbPath);
+
+            //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString);
+            SqlConnection con = new SqlConnection(sqlConSring);
             using (SqlBulkCopy sqlBulkCopy = new SqlBulkCopy(con))
             {
                 sqlBulkCopy.DestinationTableName = "dbo."+Schema.TableName;
@@ -187,6 +195,7 @@ namespace ExcelUploader.Controllers
                 for (int i = 0; i < columns.Count; i++)
                 {
                     sqlBulkCopy.ColumnMappings.Add(columns[i], columns[i]);
+                    
                 }
                 con.Open();
                 sqlBulkCopy.WriteToServer(dt);
