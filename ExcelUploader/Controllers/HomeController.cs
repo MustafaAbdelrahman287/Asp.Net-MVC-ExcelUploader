@@ -39,8 +39,6 @@ namespace ExcelUploader.Controllers
         {
             // ViewBag.Result = new { hasError = false, Message = "" };
             var validationResult = new FileValidation();
-            string filePath = string.Empty;
-            string fileName = string.Empty;
 
             if (postedFile != null)
             {
@@ -51,14 +49,22 @@ namespace ExcelUploader.Controllers
 
                 if (!validationResult.hasError)
                 {
-                    // try here
-                    postedFile.SaveAs(path + postedFile.FileName);
+                    try
+                    {
+                        postedFile.SaveAs(path + postedFile.FileName);
 
-                    dbPath = Server.MapPath(_connectionStringHelper.GetDBPath());
+                        dbPath = Server.MapPath(_connectionStringHelper.GetDBPath());
 
-                    _excelService.SaveFileToDB(postedFile , path + postedFile.FileName , dbPath);
-                    // passed file , file path on desk and DbFilePath to SaveToDB Method
+                        _excelService.SaveFileToDB(postedFile, path + postedFile.FileName, dbPath);
+                        // passed file , file path on desk and DbFilePath to SaveToDB Method
 
+                    }
+                    catch (Exception)
+                    {
+
+                        
+                    }
+                    
                 }
             }
             return View(validationResult);

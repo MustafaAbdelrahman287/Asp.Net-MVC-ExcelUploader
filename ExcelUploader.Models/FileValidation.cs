@@ -7,6 +7,7 @@ namespace ExcelUploader.Models
 {
     public class FileValidation
     {
+        public bool FileExists { get; set; }
         public bool hasError { get; set; }
         public string  Message { get; set; }
     }
