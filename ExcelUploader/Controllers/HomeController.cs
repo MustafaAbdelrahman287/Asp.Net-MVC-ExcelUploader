@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using System.Data.SqlClient;
 using ExcelUploader.DataAccessLayer;
 using ExcelUploader.BusinessLogicLayer;
+using ExcelUploader.Models.ViewModels;
 
 namespace ExcelUploader.Controllers
 {
@@ -27,7 +28,7 @@ namespace ExcelUploader.Controllers
 
         public ActionResult Index()
         {
-            var model = new FileValidation();
+            var model = new HomeViewModel();
 
             return View(model);
         }
@@ -35,83 +36,96 @@ namespace ExcelUploader.Controllers
         [HttpPost]
         public ActionResult Index(HttpPostedFileBase postedFile)
         {
-            var validationResult = new FileValidation();
+            var homeVM = new HomeViewModel();
             // handle special chars here
             if (postedFile != null)
             {
+
                 string path = Server.MapPath(_excelService.GetUploadPath()); // Upload Path
                 string dbPath = Server.MapPath(_connectionStringHelper.GetDBPath()); // db Path
-
-                Session["FileName"] = Path.GetFileNameWithoutExtension(path + postedFile.FileName);
-                Session["PostedFile"] = postedFile;
-
-                validationResult = _excelService.ValidateFile(postedFile, path);
-
-                if (!validationResult.hasError)
+                string fileName = postedFile.FileName;
+                // handling speacial characters
+                var nameValidation = _excelService.HandleSpecialChars(postedFile.FileName);
+                if (nameValidation.HasSpecChar)
                 {
-                  bool savedToDesk = _excelService.SaveFileToDesk(postedFile, path + postedFile.FileName);
+                    fileName = nameValidation.NewString; // if there are spec chars it's now replaced in file name 
+                }
+                homeVM.FileValidation = _excelService.ValidateFile(postedFile, path, fileName);
 
+                if (!homeVM.FileValidation.hasError)
+                {
+                    
+                    bool savedToDesk = _excelService.SaveFileToDesk(postedFile, path + fileName);
+                    
                     if (savedToDesk)
                     {
-                        bool savedToDB = _excelService.SaveFileToDB(postedFile, path + postedFile.FileName, dbPath);
+                        
+                        bool savedToDB = _excelService.SaveFileToDB(postedFile, path + fileName, dbPath);
                         // passed file , file path on desk and DbFilePath to SaveToDB Method
                         if (!savedToDB)
                         {
-                            validationResult.Message = "Oops! Something went wrong..";
-                            validationResult.hasError = true;
+                            homeVM.FileValidation.Message = "Oops! Something went wrong..";
+                            homeVM.FileValidation.hasError = true;
                         }
                     }
                     else
                     {
-                        validationResult.Message = "Oops! Something went wrong..";
-                        validationResult.hasError = true;
+                        homeVM.FileValidation.Message = "Oops! Something went wrong..";
+                        homeVM.FileValidation.hasError = true;
                     }
                 }
-                if (validationResult.FileExists)
+                if (homeVM.FileValidation.FileExists)
                 {
-                   ActionResult actionResult = this.Update(postedFile, path, dbPath);
-
-                    return actionResult;
+                   homeVM = this.Update(postedFile, fileName, path, dbPath);
+                    
                 }
+
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(path + fileName);
+                homeVM.FileName = fileNameWithoutExt;
+                homeVM.FileData = _excelService.GetTableData(fileNameWithoutExt, dbPath);
             }
-            return View(validationResult);
+            return View(homeVM);
         }
         
-        public ActionResult Update(HttpPostedFileBase postedFile , string uploadPath, string dbPath)
+        public HomeViewModel Update(HttpPostedFileBase postedFile, string fileName , string uploadPath, string dbPath)
         {
 
-            var validationResult = new FileValidation();
-            // handle special chars here
-            bool oldFileDeleted = _excelService.DeleteFile(uploadPath + postedFile.FileName);
+            var homeVM = new HomeViewModel();
+
+            bool oldFileDeleted = _excelService.DeleteFile(uploadPath + fileName);
+
             if (oldFileDeleted)
             {
                // save new file to desk
-                    bool savedToDesk = _excelService.SaveFileToDesk(postedFile, uploadPath + postedFile.FileName);
+                    bool savedToDesk = _excelService.SaveFileToDesk(postedFile, uploadPath +fileName);
                     if (savedToDesk)
                     {
+                    
+                    // note that handling special chars is already handled;
 
-                        bool savedToDB = _excelService.UpdateFileInDB(postedFile, uploadPath + postedFile.FileName, dbPath);
+                    bool savedToDB = _excelService.UpdateFileInDB(postedFile, uploadPath + fileName, dbPath);
                         // passed file , file path on desk and DbFilePath to SaveToDB Method
                         if (!savedToDB)
                         {
-                            validationResult.Message = "Oops! Something went wrong..";
-                            validationResult.hasError = true;
+                            homeVM.FileValidation.Message = "Oops! Something went wrong..";
+                            homeVM.FileValidation.hasError = true;
                         }
                     }
                     else
                     {
-                        validationResult.Message = "Oops! Something went wrong..";
-                        validationResult.hasError = true;
+                        homeVM.FileValidation.Message = "Oops! Something went wrong..";
+                        homeVM.FileValidation.hasError = true;
                     }
                 }
-            validationResult.hasError = false;
-            validationResult.Message = "File Overwritten Successfully";
-             return View("Index",validationResult);
+
+            homeVM.FileValidation.hasError = false;
+            homeVM.FileValidation.Message = "File Overwritten Successfully";
+            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(uploadPath + fileName);
+            homeVM.FileName = fileNameWithoutExt;
+            homeVM.FileData = _excelService.GetTableData(fileNameWithoutExt, dbPath);
+             return homeVM;
         }
-        public ActionResult ViewFileData(string fileName)
-        {
-            return null;
-        }
+       
         #region About and Contact Actions
 
         public ActionResult About()

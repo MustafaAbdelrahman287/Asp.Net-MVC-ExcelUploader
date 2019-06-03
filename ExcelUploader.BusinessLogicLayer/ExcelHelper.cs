@@ -8,13 +8,14 @@ using System.Text;
 using ExcelUploader.DataAccessLayer;
 using System.Web;
 using System.IO;
+using System.Text.RegularExpressions;
+
 namespace ExcelUploader.BusinessLogicLayer
 {
     public class ExcelService
     {
         private readonly FileToDBService _DbService;
         private readonly ConnectionStringHelper _ConnectionStrHelper;
-
         private string[] _allowedExtentions { get; set; }
 
         public ExcelService() // constructor
@@ -25,19 +26,19 @@ namespace ExcelUploader.BusinessLogicLayer
 
             _DbService = new FileToDBService();
         }
-        public FileValidation ValidateFile(HttpPostedFileBase postedFile, string path)
+        public FileValidation ValidateFile(HttpPostedFileBase postedFile, string path, string fileName)
         {
-            string fileName;
+            string fileNameWithoutExt;
 
             FileValidation fileValidation = new FileValidation();
 
-            fileValidation.FileExists = this.CheckIfFileExists(path + postedFile.FileName);
+            fileValidation.FileExists = this.CheckIfFileExists(path + fileName);
 
             if (!fileValidation.FileExists)
             {
 
                 var fileExtension = Path.GetExtension(postedFile.FileName).ToLower();
-                fileName = Path.GetFileNameWithoutExtension(path);
+                fileNameWithoutExt = Path.GetFileNameWithoutExtension(path + fileName);
 
                 if (_allowedExtentions.Contains(fileExtension))
                 {
@@ -62,7 +63,7 @@ namespace ExcelUploader.BusinessLogicLayer
             }
             return fileValidation;
         }
-
+        
         public bool SaveFileToDesk(HttpPostedFileBase postedFile, string path)
         {
             try
@@ -70,8 +71,9 @@ namespace ExcelUploader.BusinessLogicLayer
                 postedFile.SaveAs(path);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception )
             {
+                throw;
 
                 return false;
             }
@@ -98,6 +100,7 @@ namespace ExcelUploader.BusinessLogicLayer
                 string columnName = row["Column_Name"].ToString();
                 if (!string.IsNullOrEmpty(columnName))
                 {
+                    columnName = this.HandleSpecialChars(columnName).NewString;
                     schema.ColumnsNames.Add(columnName);
 
                 }
@@ -107,6 +110,13 @@ namespace ExcelUploader.BusinessLogicLayer
             return schema;
         }
 
+        public DataTable GetTableData(string tableName, string dbPath)
+        {
+            string sqlConString = _ConnectionStrHelper.GetSQLConnectionString(dbPath);
+
+            return _DbService.GetTableData(tableName, sqlConString);
+
+        }
         public bool SaveFileToDB(HttpPostedFileBase postedFile, string excelPath, string dbPath)
         {
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(excelPath);
@@ -172,9 +182,9 @@ namespace ExcelUploader.BusinessLogicLayer
                 File.Delete(path);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception )
             {
-
+                throw;
                 return false;
             }
         }
@@ -206,7 +216,26 @@ namespace ExcelUploader.BusinessLogicLayer
 
             return File.Exists(path);
         }
+        public FileNameValidation HandleSpecialChars(string text)
+        {
+            FileNameValidation fileNameValidation = new FileNameValidation();
 
 
+            string specialChars = "[*'\",_&#^@ ]";
+
+            for (int i = 0; i < specialChars.Length; i++)
+            {
+                bool hasSpecChar = text.Contains(specialChars[i]);
+                if (hasSpecChar)
+                {
+                    fileNameValidation.HasSpecChar = true;
+                    text = text.Replace(specialChars[i], '_');
+                }
+            }
+            fileNameValidation.NewString = text;
+
+            return fileNameValidation;
+        }
     }
+
 }

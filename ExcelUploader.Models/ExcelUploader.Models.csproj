@@ -50,8 +50,10 @@
   <ItemGroup>
     <Compile Include="ExcelFileSchema.cs" />
     <Compile Include="ExcelUploaderContext.cs" />
+    <Compile Include="FileNameValidation.cs" />
     <Compile Include="FileValidation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModels\HomeViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

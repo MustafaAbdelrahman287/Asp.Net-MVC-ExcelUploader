@@ -13,9 +13,11 @@ namespace ExcelUploader.DataAccessLayer
 {
     public class FileToDBService
     {
+        
         public string UploadPath { get; set; }
         public FileToDBService()
         {
+
             UploadPath = "~/Uploads/";
         }
         public string GetUploadPath()
@@ -32,8 +34,10 @@ namespace ExcelUploader.DataAccessLayer
                     int result = ctx.Database.ExecuteSqlCommand(sqlStatement);
                     return true;
                 }
-                catch (Exception ex)
+                catch (Exception )
                 {
+                    throw;
+
                     return false;
                 }
             }
@@ -49,6 +53,8 @@ namespace ExcelUploader.DataAccessLayer
                 }
                 catch (Exception )
                 {
+                    throw;
+
                     return false;
                 }
             }
@@ -66,6 +72,10 @@ namespace ExcelUploader.DataAccessLayer
             string selectCmd = "select * from [" + sheetName + "]";
 
             OleDbDataAdapter SheetAdapter = new OleDbDataAdapter(selectCmd, excelConn);
+            foreach (DataColumn column in dt.Columns)
+            {
+                column.ColumnName = this.HandleSpecialChars(column.ColumnName).NewString;
+            }
             SheetAdapter.Fill(dt);
             excelConn.Close();
 
@@ -90,9 +100,54 @@ namespace ExcelUploader.DataAccessLayer
             }
             catch (Exception)
             {
+                throw;
 
                 return false;
             }
         }
+
+        public DataTable GetTableData(string tableName, string sqlConnectionString)
+        {
+            DataTable dt = new DataTable();
+            string query = "select * from " + tableName;
+            try
+            {
+                SqlConnection con = new SqlConnection(sqlConnectionString);
+                SqlCommand cmd = new SqlCommand(query, con);
+                con.Open();
+
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(dt);
+                con.Close();
+                da.Dispose();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return dt;
+        }
+        public FileNameValidation HandleSpecialChars(string text)
+        {
+            FileNameValidation fileNameValidation = new FileNameValidation();
+
+
+            string specialChars = "[*'\",_&#^@ ]";
+
+            for (int i = 0; i < specialChars.Length; i++)
+            {
+                bool hasSpecChar = text.Contains(specialChars[i]);
+                if (hasSpecChar)
+                {
+                    fileNameValidation.HasSpecChar = true;
+                    text = text.Replace(specialChars[i], '_');
+                }
+            }
+            fileNameValidation.NewString = text;
+
+            return fileNameValidation;
+        }
     }
+
 }

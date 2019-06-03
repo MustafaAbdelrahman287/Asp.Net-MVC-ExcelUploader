@@ -1,14 +1,15 @@
-﻿@model ExcelUploader.Models.FileValidation
+﻿@model ExcelUploader.Models.ViewModels.HomeViewModel
+@using System.Data    
 @{
     ViewBag.Title = "Home Page";
     string UpdateUrl = Url.Action("Update", "Home");
 
-    string color = (Model.hasError) ? "red" : "green";
-    string message = Model.Message;
+    string color = (Model.FileValidation.hasError) ? "red" : "green";
+    string message = Model.FileValidation.Message;
     string filename = "";
     var uploadedFile = Session["PostedFile"];
     string submitBtnClass = "btn btn-primary";
-    if (Model.FileExists)
+    if (Model.FileValidation.FileExists)
     {
         color = "orange";
         filename = Session["FileName"].ToString();
@@ -32,15 +33,39 @@
     <input type="file" name="postedFile" class="form-control" id="fileInput" />
    
         <span style="color:@color" id="message"> @message</span>
-        @*<div id="fileExistsdiv" @hideExistsDiv>
-            <input class="btn btn-default" type="button" value="View File Data" onclick="ViewFileData('@filename')" />
-            <input id="updateBtn" class="btn btn-default" type="button" value="Update File"  />
-
-        </div>*@
-        @*<span id="viewLink" style="margin-right: 20px; margin-left:20px">@Html.ActionLink("View File Data","ViewFileData", new { filename })</span>
-        <span id="updateBtn"  class="btn btn-default"> @Html.ActionLink("Update File", "Update", new { filename })</span>*@
-
-
+    
     <hr />
     <input type="submit" id="submit" value="Upload File" class="@submitBtnClass" />
 }
+
+    <div style="text-align:center">
+        @if (Model.FileData != null)
+        {
+            <h4 style="color:deepskyblue">@Model.FileName</h4>
+            <hr />
+            <table class="table table-responsive  table-striped table-hover">
+                <thead >
+                    <tr >
+                        @foreach (DataColumn column in Model.FileData.Columns)
+                        {
+                            <th style="text-align:center">
+                                @column.ColumnName
+                            </th>
+                        }
+
+                    </tr>
+
+                        @for (int i = 0; i < Model.FileData.Rows.Count; i++)
+                        {
+                            <tr>
+                                @for (int j = 0; j < Model.FileData.Columns.Count; j++)
+                                {
+                                    <td>@Model.FileData.Rows[i][j].ToString()</td>
+                                }
+                            </tr>
+                        }
+                </thead>
+            </table>
+        }
+
+    </div>
