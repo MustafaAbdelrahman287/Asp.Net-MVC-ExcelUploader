@@ -64,13 +64,13 @@ namespace ExcelUploader.Controllers
                         // passed file , file path on desk and DbFilePath to SaveToDB Method
                         if (!savedToDB)
                         {
-                            homeVM.FileValidation.Message = "Oops! Something went wrong..";
+                            homeVM.FileValidation.Message = "Oops! Something went wrong.. the file maybe in use!";
                             homeVM.FileValidation.hasError = true;
                         }
                     }
                     else
                     {
-                        homeVM.FileValidation.Message = "Oops! Something went wrong..";
+                        homeVM.FileValidation.Message = "Oops! Something went wrong.. the file maybe in use!";
                         homeVM.FileValidation.hasError = true;
                     }
                 }
@@ -119,6 +119,7 @@ namespace ExcelUploader.Controllers
                 }
 
             homeVM.FileValidation.hasError = false;
+            homeVM.FileValidation.FileExists = true;
             homeVM.FileValidation.Message = "File Overwritten Successfully";
             string fileNameWithoutExt = Path.GetFileNameWithoutExtension(uploadPath + fileName);
             homeVM.FileName = fileNameWithoutExt;

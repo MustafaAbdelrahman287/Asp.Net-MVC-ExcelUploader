@@ -36,7 +36,8 @@ namespace ExcelUploader.DataAccessLayer
                 }
                 catch (Exception )
                 {
-                    throw;
+
+                    
 
                     return false;
                 }
@@ -53,8 +54,8 @@ namespace ExcelUploader.DataAccessLayer
                 }
                 catch (Exception )
                 {
-                    throw;
 
+                    
                     return false;
                 }
             }
@@ -72,11 +73,13 @@ namespace ExcelUploader.DataAccessLayer
             string selectCmd = "select * from [" + sheetName + "]";
 
             OleDbDataAdapter SheetAdapter = new OleDbDataAdapter(selectCmd, excelConn);
-            foreach (DataColumn column in dt.Columns)
-            {
-                column.ColumnName = this.HandleSpecialChars(column.ColumnName).NewString;
-            }
+            
             SheetAdapter.Fill(dt);
+
+            for (int i = 0; i < dt.Columns.Count; i++)
+            {
+                dt.Columns[i].ColumnName = this.HandleSpecialChars(dt.Columns[i].ColumnName).NewString;
+            }
             excelConn.Close();
 
             SqlConnection con = new SqlConnection(sqlConString);
@@ -100,7 +103,8 @@ namespace ExcelUploader.DataAccessLayer
             }
             catch (Exception)
             {
-                throw;
+
+                
 
                 return false;
             }
@@ -123,7 +127,8 @@ namespace ExcelUploader.DataAccessLayer
             }
             catch (Exception ex)
             {
-                throw;
+                    
+
             }
 
             return dt;
@@ -133,7 +138,7 @@ namespace ExcelUploader.DataAccessLayer
             FileNameValidation fileNameValidation = new FileNameValidation();
 
 
-            string specialChars = "[*'\",_&#^@ ]";
+            string specialChars = "[*'\",_&#^@ ]-=+~()!<>$;";
 
             for (int i = 0; i < specialChars.Length; i++)
             {

@@ -73,7 +73,8 @@ namespace ExcelUploader.BusinessLogicLayer
             }
             catch (Exception )
             {
-                throw;
+                    
+
 
                 return false;
             }
@@ -184,7 +185,8 @@ namespace ExcelUploader.BusinessLogicLayer
             }
             catch (Exception )
             {
-                throw;
+                
+
                 return false;
             }
         }
@@ -221,7 +223,7 @@ namespace ExcelUploader.BusinessLogicLayer
             FileNameValidation fileNameValidation = new FileNameValidation();
 
 
-            string specialChars = "[*'\",_&#^@ ]";
+            string specialChars = "[*'\",_&#^@ ]-=+~()!<>$;";
 
             for (int i = 0; i < specialChars.Length; i++)
             {

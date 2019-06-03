@@ -6,13 +6,10 @@
 
     string color = (Model.FileValidation.hasError) ? "red" : "green";
     string message = Model.FileValidation.Message;
-    string filename = "";
-    var uploadedFile = Session["PostedFile"];
     string submitBtnClass = "btn btn-primary";
     if (Model.FileValidation.FileExists)
     {
         color = "orange";
-        filename = Session["FileName"].ToString();
     }
 }
 <script>
@@ -41,7 +38,7 @@
     <div style="text-align:center">
         @if (Model.FileData != null)
         {
-            <h4 style="color:deepskyblue">@Model.FileName</h4>
+            <h3 style="color:green">@Model.FileName</h3>
             <hr />
             <table class="table table-responsive  table-striped table-hover">
                 <thead >
