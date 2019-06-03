@@ -25,7 +25,57 @@ namespace ExcelUploader.BusinessLogicLayer
 
             _DbService = new FileToDBService();
         }
+        public FileValidation ValidateFile(HttpPostedFileBase postedFile, string path)
+        {
+            string fileName;
 
+            FileValidation fileValidation = new FileValidation();
+
+            fileValidation.FileExists = this.CheckIfFileExists(path + postedFile.FileName);
+
+            if (!fileValidation.FileExists)
+            {
+
+                var fileExtension = Path.GetExtension(postedFile.FileName).ToLower();
+                fileName = Path.GetFileNameWithoutExtension(path);
+
+                if (_allowedExtentions.Contains(fileExtension))
+                {
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+
+                    fileValidation.hasError = false;
+                    fileValidation.Message = "OK! Your File Is Uploaded Successfully!";
+                }
+                else
+                {
+                    fileValidation.hasError = true;
+                    fileValidation.Message = "Please Select Excel Files Only!";
+                }
+            }
+            else
+            {
+                fileValidation.hasError = true;
+                fileValidation.Message = "A file with the same name already exists!";
+            }
+            return fileValidation;
+        }
+
+        public bool SaveFileToDesk(HttpPostedFileBase postedFile, string path)
+        {
+            try
+            {
+                postedFile.SaveAs(path);
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                return false;
+            }
+        }
         public ExcelFileSchema GetExcelFileSchema(string connectionString, string fileName)
         //This function can be enhanced to access the schema of multiple sheets within
         // a single excel file.
@@ -57,46 +107,7 @@ namespace ExcelUploader.BusinessLogicLayer
             return schema;
         }
 
-        public FileValidation ValidateFile(HttpPostedFileBase postedFile, string path)
-        {
-            string fileName, filePath;
-
-            FileValidation fileValidation = new FileValidation();
-
-            fileValidation.FileExists = this.CheckIfFileExists(path);
-
-            if (!fileValidation.FileExists)
-            {
-
-                var fileExtension = Path.GetExtension(postedFile.FileName).ToLower();
-                fileName = Path.GetFileNameWithoutExtension(path + postedFile.FileName);
-                filePath = path + postedFile.FileName;
-
-                if (_allowedExtentions.Contains(fileExtension))
-                {
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-
-                    fileValidation.hasError = false;
-                    fileValidation.Message = "OK! Your File Is Uploaded Successfully!";
-                }
-                else
-                {
-                    fileValidation.hasError = true;
-                    fileValidation.Message = "Please Select Excel Files Only!";
-                }
-            }
-            else
-            {
-                fileValidation.hasError = true;
-                fileValidation.Message = "A file with the same name already exists!";
-            }
-            return fileValidation;
-        }
-
-        public void SaveFileToDB(HttpPostedFileBase postedFile, string excelPath, string dbPath)
+        public bool SaveFileToDB(HttpPostedFileBase postedFile, string excelPath, string dbPath)
         {
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(excelPath);
 
@@ -107,16 +118,65 @@ namespace ExcelUploader.BusinessLogicLayer
             string sqlCreateStatment = this.GenerateSQLCreateStatement(fileSchema);
 
             string sqlConString = _ConnectionStrHelper.GetSQLConnectionString(dbPath);
-            _DbService.CreateNewTable(sqlCreateStatment);
+            bool tableCreated = _DbService.CreateNewTable(sqlCreateStatment);
 
-            _DbService.PopulateTableData(connString, fileSchema, sqlConString);
+            bool dataAdded = _DbService.PopulateTableData(connString, fileSchema, sqlConString);
+            if (tableCreated && dataAdded)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+
+            }
         }
 
+        public bool UpdateFileInDB(HttpPostedFileBase postedFile, string excelPath, string dbPath)
+        {
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(excelPath);
+            bool oldTableDropped = _DbService.DropSqlTable(fileNameWithoutExtension);
+            if (oldTableDropped)
+            {
+                string connString = _ConnectionStrHelper.GetExcelConnectionString(Path.GetExtension(postedFile.FileName), excelPath);
 
+                var fileSchema = this.GetExcelFileSchema(connString, fileNameWithoutExtension);
 
+                string sqlCreateStatment = this.GenerateSQLCreateStatement(fileSchema);
+
+                string sqlConString = _ConnectionStrHelper.GetSQLConnectionString(dbPath);
+                bool tableCreated = _DbService.CreateNewTable(sqlCreateStatment);
+
+                bool dataAdded = _DbService.PopulateTableData(connString, fileSchema, sqlConString);
+                if (tableCreated && dataAdded)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+
+                }
+            }
+            else return false;
+        }
         public string GetUploadPath()
         {
             return _DbService.GetUploadPath();
+        }
+
+        public bool DeleteFile(string path)
+        {
+            try
+            {
+                File.Delete(path);
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                return false;
+            }
         }
         private string GenerateSQLCreateStatement(ExcelFileSchema excelFileSchema)
         {
@@ -143,7 +203,10 @@ namespace ExcelUploader.BusinessLogicLayer
 
         private bool CheckIfFileExists(string path)
         {
+
             return File.Exists(path);
         }
+
+
     }
 }

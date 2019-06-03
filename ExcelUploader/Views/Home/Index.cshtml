@@ -1,19 +1,46 @@
 ﻿@model ExcelUploader.Models.FileValidation
 @{
     ViewBag.Title = "Home Page";
+    string UpdateUrl = Url.Action("Update", "Home");
+
     string color = (Model.hasError) ? "red" : "green";
     string message = Model.Message;
-
-
+    string filename = "";
+    var uploadedFile = Session["PostedFile"];
+    string submitBtnClass = "btn btn-primary";
+    if (Model.FileExists)
+    {
+        color = "orange";
+        filename = Session["FileName"].ToString();
+    }
 }
+<script>
+    $(document).ready(function () {
+        var fileInput = document.getElementById("fileInput");
+        var submitBtn = document.getElementById("submit");
+        var msgSpan = document.getElementById("message");
+        var viewLink = document.getElementById("viewLink");
+        var updateBtn = document.getElementById("updateBtn");
+        
+        
+    });
+</script>
+
 @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
     <span>Select File:</span>
-    <input type="file" name="postedFile" accept="xsl,xslx" class="form-control" />
-    
-        <span style="color:@color"> @message</span>
+    <input type="file" name="postedFile" class="form-control" id="fileInput" />
+   
+        <span style="color:@color" id="message"> @message</span>
+        @*<div id="fileExistsdiv" @hideExistsDiv>
+            <input class="btn btn-default" type="button" value="View File Data" onclick="ViewFileData('@filename')" />
+            <input id="updateBtn" class="btn btn-default" type="button" value="Update File"  />
+
+        </div>*@
+        @*<span id="viewLink" style="margin-right: 20px; margin-left:20px">@Html.ActionLink("View File Data","ViewFileData", new { filename })</span>
+        <span id="updateBtn"  class="btn btn-default"> @Html.ActionLink("Update File", "Update", new { filename })</span>*@
 
 
-<hr />
-<input type="submit" value="Upload" class="btn btn-primary" />
+    <hr />
+    <input type="submit" id="submit" value="Upload File" class="@submitBtnClass" />
 }

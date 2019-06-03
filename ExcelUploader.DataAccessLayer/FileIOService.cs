@@ -23,24 +23,37 @@ namespace ExcelUploader.DataAccessLayer
             return UploadPath;
         }
 
-        public void CreateNewTable(string sqlStatement)
+        public bool CreateNewTable(string sqlStatement)
         {
             using (ExcelUploaderContext ctx = new ExcelUploaderContext())
             {
                 try
                 {
                     int result = ctx.Database.ExecuteSqlCommand(sqlStatement);
-
+                    return true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-
-                    throw;
+                    return false;
                 }
             }
         }
-
-        public void PopulateTableData(string connString, ExcelFileSchema Schema, string sqlConString)
+        public bool DropSqlTable(string TableName)
+        {
+            using (ExcelUploaderContext ctx = new ExcelUploaderContext())
+            {
+                try
+                {
+                    int result = ctx.Database.ExecuteSqlCommand("DROP TABLE "+TableName);
+                    return true;
+                }
+                catch (Exception )
+                {
+                    return false;
+                }
+            }
+        }
+        public bool PopulateTableData(string connString, ExcelFileSchema Schema, string sqlConString)
         {
 
             DataTable dt = new DataTable();
@@ -72,12 +85,13 @@ namespace ExcelUploader.DataAccessLayer
                     con.Open();
                     sqlBulkCopy.WriteToServer(dt);
                     con.Close();
+                    return true;
                 }
             }
             catch (Exception)
             {
 
-                throw;
+                return false;
             }
         }
     }
