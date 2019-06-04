@@ -14,6 +14,10 @@ namespace ExcelUploader.BusinessLogicLayer
 {
     public class ExcelService
     {
+        // this class handles every proccess conserning excel sheets ie. validations , running business logic on excel file data,
+        // saving , overwriting or deleting files on desk and calling Db access layer to save or update a file record .
+
+
         private readonly FileToDBService _DbService;
         private readonly ConnectionStringHelper _ConnectionStrHelper;
         private string[] _allowedExtentions { get; set; }
@@ -28,20 +32,23 @@ namespace ExcelUploader.BusinessLogicLayer
         }
         public FileValidation ValidateFile(HttpPostedFileBase postedFile, string path, string fileName)
         {
+            
             string fileNameWithoutExt;
 
             FileValidation fileValidation = new FileValidation();
 
             fileValidation.FileExists = this.CheckIfFileExists(path + fileName);
 
-            if (!fileValidation.FileExists)
+            var fileExtension = Path.GetExtension(postedFile.FileName).ToLower();
+
+            if (_allowedExtentions.Contains(fileExtension))
             {
+                
 
-                var fileExtension = Path.GetExtension(postedFile.FileName).ToLower();
-                fileNameWithoutExt = Path.GetFileNameWithoutExtension(path + fileName);
-
-                if (_allowedExtentions.Contains(fileExtension))
+                if (!fileValidation.FileExists)
                 {
+                    fileNameWithoutExt = Path.GetFileNameWithoutExtension(path + fileName);
+
                     if (!Directory.Exists(path))
                     {
                         Directory.CreateDirectory(path);
@@ -49,18 +56,19 @@ namespace ExcelUploader.BusinessLogicLayer
 
                     fileValidation.hasError = false;
                     fileValidation.Message = "OK! Your File Is Uploaded Successfully!";
+
                 }
                 else
                 {
-                    fileValidation.hasError = true;
-                    fileValidation.Message = "Please Select Excel Files Only!";
+                    fileValidation.Message = "A file with the same name already exists!";
                 }
             }
             else
             {
                 fileValidation.hasError = true;
-                fileValidation.Message = "A file with the same name already exists!";
+                fileValidation.Message = "Please Select Excel Files Only!";
             }
+            
             return fileValidation;
         }
         
@@ -120,6 +128,9 @@ namespace ExcelUploader.BusinessLogicLayer
         }
         public bool SaveFileToDB(HttpPostedFileBase postedFile, string excelPath, string dbPath)
         {
+            //Here we get the file name , then the column names within , generate an sql command and create an sql table correspondingly
+            // then populate the data inside the file to the table in DB
+
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(excelPath);
 
             string connString = _ConnectionStrHelper.GetExcelConnectionString(Path.GetExtension(postedFile.FileName), excelPath);
@@ -145,6 +156,10 @@ namespace ExcelUploader.BusinessLogicLayer
 
         public bool UpdateFileInDB(HttpPostedFileBase postedFile, string excelPath, string dbPath)
         {
+            // Here we simply drop the table created before in DB , get new schema from the excel sheet , create a new DB table with it
+            // and finally populate the newly created table with data from the excel sheet.
+            // ----- please note that each of the below steps has it's own commented documentation.
+
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(excelPath);
             bool oldTableDropped = _DbService.DropSqlTable(fileNameWithoutExtension);
             if (oldTableDropped)
@@ -220,6 +235,8 @@ namespace ExcelUploader.BusinessLogicLayer
         }
         public FileNameValidation HandleSpecialChars(string text)
         {
+            // this method is repeated in the data access layer Project service class to not
+            // make circular reference between it and this project
             FileNameValidation fileNameValidation = new FileNameValidation();
 
 
@@ -230,6 +247,8 @@ namespace ExcelUploader.BusinessLogicLayer
                 bool hasSpecChar = text.Contains(specialChars[i]);
                 if (hasSpecChar)
                 {
+                    // If a special character is found we replace it with an _ .
+
                     fileNameValidation.HasSpecChar = true;
                     text = text.Replace(specialChars[i], '_');
                 }
@@ -238,6 +257,7 @@ namespace ExcelUploader.BusinessLogicLayer
 
             return fileNameValidation;
         }
+
     }
 
 }

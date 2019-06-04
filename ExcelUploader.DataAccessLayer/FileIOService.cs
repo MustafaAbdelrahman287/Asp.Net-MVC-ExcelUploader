@@ -13,6 +13,7 @@ namespace ExcelUploader.DataAccessLayer
 {
     public class FileToDBService
     {
+        // This class Handles any CRUD operation will be ran on the DB
         
         public string UploadPath { get; set; }
         public FileToDBService()
@@ -27,6 +28,7 @@ namespace ExcelUploader.DataAccessLayer
 
         public bool CreateNewTable(string sqlStatement)
         {
+            // Here we pass the sql cmd we wish to run on DB 
             using (ExcelUploaderContext ctx = new ExcelUploaderContext())
             {
                 try
@@ -60,11 +62,12 @@ namespace ExcelUploader.DataAccessLayer
                 }
             }
         }
-        public bool PopulateTableData(string connString, ExcelFileSchema Schema, string sqlConString)
+        public bool PopulateTableData(string excelConString, ExcelFileSchema Schema, string sqlConString)
         {
+            // step 1 -- Here we pass excel connection string and connect to it then fill a newly created data table with it
 
             DataTable dt = new DataTable();
-            OleDbConnection excelConn = new OleDbConnection(connString);
+            OleDbConnection excelConn = new OleDbConnection(excelConString);
             excelConn.Open();
             DataTable FileSchema = excelConn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null); // no restrictions
 
@@ -74,13 +77,16 @@ namespace ExcelUploader.DataAccessLayer
 
             OleDbDataAdapter SheetAdapter = new OleDbDataAdapter(selectCmd, excelConn);
             
-            SheetAdapter.Fill(dt);
+            SheetAdapter.Fill(dt);//  the data is filled from the excel file to the data table that we will use to fill the DB table with.
 
+            // step 2 --- after thr data is filled into the D.T. then special characters in column names are handled;
             for (int i = 0; i < dt.Columns.Count; i++)
             {
                 dt.Columns[i].ColumnName = this.HandleSpecialChars(dt.Columns[i].ColumnName).NewString;
             }
             excelConn.Close();
+
+            // step 3 -- then here we get  connect to the db , and map the excel tabel to the db table
 
             SqlConnection con = new SqlConnection(sqlConString);
 
@@ -92,11 +98,11 @@ namespace ExcelUploader.DataAccessLayer
                     var columns = Schema.ColumnsNames;
                     for (int i = 0; i < columns.Count; i++)
                     {
-                        sqlBulkCopy.ColumnMappings.Add(columns[i], columns[i]);
+                        sqlBulkCopy.ColumnMappings.Add(columns[i], columns[i]); // here we had to loop over the columns gotten from the excel file and then map each column name to a column with the same name in the newly created database table
 
                     }
                     con.Open();
-                    sqlBulkCopy.WriteToServer(dt);
+                    sqlBulkCopy.WriteToServer(dt); // filling the DB table with data from the data table;
                     con.Close();
                     return true;
                 }
@@ -112,6 +118,8 @@ namespace ExcelUploader.DataAccessLayer
 
         public DataTable GetTableData(string tableName, string sqlConnectionString)
         {
+            // here we get the data from DB table and fill a data table with it;
+
             DataTable dt = new DataTable();
             string query = "select * from " + tableName;
             try
@@ -135,6 +143,8 @@ namespace ExcelUploader.DataAccessLayer
         }
         public FileNameValidation HandleSpecialChars(string text)
         {
+            // this method is also repeated in the Business logic layer Project service class to not
+            // make circular reference between it and this project
             FileNameValidation fileNameValidation = new FileNameValidation();
 
 
@@ -143,8 +153,11 @@ namespace ExcelUploader.DataAccessLayer
             for (int i = 0; i < specialChars.Length; i++)
             {
                 bool hasSpecChar = text.Contains(specialChars[i]);
+
                 if (hasSpecChar)
                 {
+                    // If a special character is found we replace it with an _ .
+
                     fileNameValidation.HasSpecChar = true;
                     text = text.Replace(specialChars[i], '_');
                 }

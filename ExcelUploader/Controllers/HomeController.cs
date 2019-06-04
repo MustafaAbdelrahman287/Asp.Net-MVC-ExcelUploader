@@ -37,7 +37,6 @@ namespace ExcelUploader.Controllers
         public ActionResult Index(HttpPostedFileBase postedFile)
         {
             var homeVM = new HomeViewModel();
-            // handle special chars here
             if (postedFile != null)
             {
 
@@ -48,13 +47,20 @@ namespace ExcelUploader.Controllers
                 var nameValidation = _excelService.HandleSpecialChars(postedFile.FileName);
                 if (nameValidation.HasSpecChar)
                 {
-                    fileName = nameValidation.NewString; // if there are spec chars it's now replaced in file name 
+                    fileName = nameValidation.NewString;
+                    // if there are spec chars it's now replaced in fileName variable 
+                    //and passed along to all the coming phases of saving or the updating processes
                 }
+
+                // It may seem wierd why we handle special charachters of the file before we even validate it ..
+                // and that is because the file names needs to be compared to files in destination folder after it's special charachters
+                // as all the file names in the upload folder are special-character-handled
+               
                 homeVM.FileValidation = _excelService.ValidateFile(postedFile, path, fileName);
 
                 if (!homeVM.FileValidation.hasError)
                 {
-                    
+                   
                     bool savedToDesk = _excelService.SaveFileToDesk(postedFile, path + fileName);
                     
                     if (savedToDesk)
@@ -62,7 +68,15 @@ namespace ExcelUploader.Controllers
                         
                         bool savedToDB = _excelService.SaveFileToDB(postedFile, path + fileName, dbPath);
                         // passed file , file path on desk and DbFilePath to SaveToDB Method
-                        if (!savedToDB)
+                        if (savedToDB)
+                        {
+                            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(path + fileName);
+                            homeVM.FileName = fileNameWithoutExt;
+                            homeVM.FileData = _excelService.GetTableData(fileNameWithoutExt, dbPath);
+                            return View(homeVM);
+                           
+                        }
+                        else
                         {
                             homeVM.FileValidation.Message = "Oops! Something went wrong.. the file maybe in use!";
                             homeVM.FileValidation.hasError = true;
@@ -80,9 +94,7 @@ namespace ExcelUploader.Controllers
                     
                 }
 
-                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(path + fileName);
-                homeVM.FileName = fileNameWithoutExt;
-                homeVM.FileData = _excelService.GetTableData(fileNameWithoutExt, dbPath);
+               
             }
             return View(homeVM);
         }
@@ -104,8 +116,21 @@ namespace ExcelUploader.Controllers
                     // note that handling special chars is already handled;
 
                     bool savedToDB = _excelService.UpdateFileInDB(postedFile, uploadPath + fileName, dbPath);
-                        // passed file , file path on desk and DbFilePath to SaveToDB Method
-                        if (!savedToDB)
+                        // passed file and file path on desk and DbFilePath to the update Method
+
+                        if (savedToDB)
+                        {
+
+                        homeVM.FileValidation.hasError = false;
+                        homeVM.FileValidation.FileExists = true;
+                        homeVM.FileValidation.Message = "File Overwritten Successfully";
+                        string fileNameWithoutExt = Path.GetFileNameWithoutExtension(uploadPath + fileName);
+                        homeVM.FileName = fileNameWithoutExt;
+                        homeVM.FileData = _excelService.GetTableData(fileNameWithoutExt, dbPath);
+                        return homeVM;
+                    }
+                        
+                        else
                         {
                             homeVM.FileValidation.Message = "Oops! Something went wrong..";
                             homeVM.FileValidation.hasError = true;
@@ -117,13 +142,7 @@ namespace ExcelUploader.Controllers
                         homeVM.FileValidation.hasError = true;
                     }
                 }
-
-            homeVM.FileValidation.hasError = false;
-            homeVM.FileValidation.FileExists = true;
-            homeVM.FileValidation.Message = "File Overwritten Successfully";
-            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(uploadPath + fileName);
-            homeVM.FileName = fileNameWithoutExt;
-            homeVM.FileData = _excelService.GetTableData(fileNameWithoutExt, dbPath);
+            
              return homeVM;
         }
        
